@@ -10,7 +10,7 @@ library(hrbrthemes)
 library(shiny)
 library(bslib)
 library(reactable)
-library(htmlwidgets)
+# library(htmlwidgets)
 
 ui <- page_sidebar(
   # theme = bs_theme(version = 5, bootswatch = "yeti"),
@@ -45,17 +45,17 @@ ui <- page_sidebar(
 
     nav_panel(
       "Density",
-      downloadButton("download_hist", "Download Plot"),
-      fluidRow(plotOutput("hist"))
+      downloadLink("download_hist", "Download Plot"),
+      plotOutput("hist")
     ),
     nav_panel(
       "Line",
-      downloadButton("download_line", "Download Plot"),
+      downloadLink("download_line", "Download Plot"),
       plotOutput("line")
     ),
     nav_panel(
       "Summary Statistics",
-      downloadButton("download_table", "Download Data"),
+      downloadLink("download_table", "Download Data"),
       # tableOutput("table")
       reactableOutput("table")
     )
@@ -73,6 +73,8 @@ server <- function(input, output, session) {
       show_col_types = F
     )
   })
+
+  file_name <- reactive({tools::file_path_sans_ext(input$file$name)})
 
   observeEvent(input$file, {
     list_dist <- unique(df_raw()$distribution)
@@ -120,7 +122,7 @@ server <- function(input, output, session) {
           scale = 0.9,
           quantiles = 2
         ) +
-        labs(y = NULL) +
+        labs(title = file_name(), y = NULL) +
         theme_ipsum_rc() +
         scale_color_ft() +
         scale_fill_ft()
@@ -135,7 +137,7 @@ server <- function(input, output, session) {
 
     output$download_hist <- downloadHandler(
       filename = function() {
-        "hist.png"
+        glue("{file_name()}_hist.png")
       },
       content = function(file) {
         ggsave(
@@ -166,7 +168,7 @@ server <- function(input, output, session) {
           rows = vars(distribution),
           scales = "free_y"
         ) +
-        labs(y = NULL) +
+        labs(title = file_name(), y = NULL) +
         theme_ipsum_rc() +
         scale_color_ft() +
         scale_fill_ft() +
@@ -182,7 +184,7 @@ server <- function(input, output, session) {
 
     output$download_line <- downloadHandler(
       filename = function() {
-        "line.png"
+        glue("{file_name()}_line.png")
       },
       content = function(file) {
         ggsave(
@@ -316,7 +318,7 @@ server <- function(input, output, session) {
     # write table to csv file
     output$download_table <- downloadHandler(
       filename = function() {
-        "summary_statistics.tsv"
+        glue("{file_name()}_summary_statistics.tsv")
       },
       content = function(file) {
         write_tsv(df_stats(), file)
