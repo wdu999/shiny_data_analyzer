@@ -6,8 +6,8 @@ With a selection input to filter data.
 
 ## Before load a file
 
-![](0_init.png)
+![](1_init.png)
 
 ## After load a file
 
-![](1_line.png)
+![](2_hist.png)
