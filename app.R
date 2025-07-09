@@ -10,7 +10,8 @@ library(hrbrthemes)
 library(shiny)
 library(bslib)
 library(reactable)
-# library(htmlwidgets)
+library(htmlwidgets)
+library(ragg)
 
 ui <- page_sidebar(
   # theme = bs_theme(version = 5, bootswatch = "yeti"),
@@ -56,6 +57,7 @@ ui <- page_sidebar(
     nav_panel(
       "Summary Statistics",
       downloadLink("download_table", "Download Data"),
+      downloadLink("download_table_as_html", "Download HTML"),
       # tableOutput("table")
       reactableOutput("table")
     )
@@ -140,17 +142,31 @@ server <- function(input, output, session) {
         glue("{file_name()}_hist.png")
       },
       content = function(file) {
-        ggsave(
+        agg_png(
           file,
-          plot = hist_plot(),
-          width = 10,
+          width = 6,
           height = ifelse(
             length(input$dist) < 5,
-            6.18,
-            6.18 / 4 * length(input$dist)
+            3.7,
+            3.7 / 4 * length(input$dist)
           ),
-          bg = "white"
+          units = "in",
+          res = 300,
+          scaling = 0.5
         )
+        print(hist_plot())
+        dev.off()
+        # ggsave(
+        #   file,
+        #   plot = hist_plot(),
+        #   width = 10,
+        #   height = ifelse(
+        #     length(input$dist) < 5,
+        #     6.18,
+        #     6.18 / 4 * length(input$dist)
+        #   ),
+        #   bg = "white"
+        # )
       }
     )
 
@@ -163,7 +179,7 @@ server <- function(input, output, session) {
         aes(x = n, y = data),
       ) +
         geom_line() +
-        geom_point(alpha = 0.5) +
+        geom_point() +
         facet_grid(
           rows = vars(distribution),
           scales = "free_y"
@@ -187,17 +203,31 @@ server <- function(input, output, session) {
         glue("{file_name()}_line.png")
       },
       content = function(file) {
-        ggsave(
+        agg_png(
           file,
-          plot = line_plot(),
-          width = 10,
+          width = 6,
           height = ifelse(
             length(input$dist) < 5,
-            6.18,
-            6.18 / 4 * length(input$dist)
+            3.7,
+            3.7 / 4 * length(input$dist)
           ),
-          bg = "white"
+          units = "in",
+          res = 300,
+          scaling = 0.5
         )
+        print(line_plot())
+        dev.off()
+        # ggsave(
+        #   file,
+        #   plot = line_plot(),
+        #   width = 10,
+        #   height = ifelse(
+        #     length(input$dist) < 5,
+        #     6.18,
+        #     6.18 / 4 * length(input$dist)
+        #   ),
+        #   bg = "white"
+        # )
       }
     )
 
@@ -302,18 +332,18 @@ server <- function(input, output, session) {
     #
     # write reactable to html
     #
-    # output$download_table <- downloadHandler(
-    #   filename = function() {
-    #     "summary_statistics.html"
-    #   },
-    #   content = function(file) {
-    #     saveWidget(
-    #       tbl(),
-    #       file,
-    #       selfcontained = T
-    #     )
-    #   }
-    # )
+    output$download_table_as_html <- downloadHandler(
+      filename = function() {
+        "summary_statistics.html"
+      },
+      content = function(file) {
+        saveWidget(
+          tbl(),
+          file,
+          selfcontained = T
+        )
+      }
+    )
 
     # write table to csv file
     output$download_table <- downloadHandler(
